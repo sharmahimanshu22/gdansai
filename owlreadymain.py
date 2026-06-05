@@ -85,11 +85,11 @@ for cls in onto.classes():
     
     for item in cls.is_a:
         if isinstance(item, ThingClass):
-            node['neigbors'].append((item.name, "is_a"))
+            node['neighbors'].append((item.name, "is_a"))
         elif isinstance(item, Restriction):
             relation = item.property.name
             if hasattr(item.value, "name"):
-                node['neigbors'].append((item.value.name, relation))
+                node['neighbors'].append((item.value.name, relation))
             else:
                 continue
 
@@ -112,25 +112,32 @@ for cls in onto.classes():
     nodes[cls.name] = node
 
 
-
-#for k,v in nodes.items():
-#    print(k,": ",v)
+nn = 0
+for k,v in nodes.items():
+    print(k,": ",v)
+    nn = nn + 1
+    if nn > 100:
+        break
 
 
  
 
 def dist(startid, endid):
     q = deque()
-    q.append((startid, d))
+    q.append((startid, 0))
     while(q):
-        currid, d = q.popleft()
+        (currid, d) = q.popleft()
+        print(currid)
+        if (currid == 'Thing'):
+            continue
         currnode = nodes[currid]
         neighbors = currnode['neighbors']
+        print("neighbors: ", neighbors)
         for e in neighbors:
             if e[0] == endid:
                 return d + 1
             else:
-                q.append((e, d+1))
+                q.append((e[0], d+1))
     return None
 
 
@@ -140,7 +147,11 @@ PathDataset, ElkReasonerFactory, MOWLReasoner  = initialize_mowl()
 
 inferred_edges = get_elk_inferred_edges(os.path.abspath("go.owl"), PathDataset, ElkReasonerFactory, MOWLReasoner )
 
-
+for inf_edge in inferred_edges[:200]:
+    start = inf_edge[0]
+    end = inf_edge[1]
+    d = dist(start,end)
+    print(d)
 
 
 
