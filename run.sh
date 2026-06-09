@@ -15,4 +15,4 @@ ml java/11.0.2
 ml cuda/13.0
 
 conda activate torch-2.9.1+cu130
-python owlreadymain.py
+python main.py

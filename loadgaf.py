@@ -1,21 +1,24 @@
-gene_nodes = {}
 
 
-with open("goa_human.gaf") as f:
+def get_gene_nodes():
+    gene_nodes = {}
 
-    for line in f:
 
-        if line.startswith("!"):
-            continue
+    with open("goa_human.gaf") as f:
 
-        cols = line.rstrip("\n").split("\t")
+        for line in f:
 
-        gene = cols[1]       # DB Object ID
-        relation = cols[3]   # Relation
-        go_id = cols[4].replace(":", "_")
+            if line.startswith("!"):
+                continue
 
-        gene_node = {"id": gene, "symbol": cols[2], "name": cols[9], "type": cols[11], "taxon": cols[12], "neighbors": [(go_id, relation)]}
+            cols = line.rstrip("\n").split("\t")
 
-        gene_nodes[gene] = gene_node
+            gene = cols[1]       # DB Object ID
+            relation = cols[3]   # Relation
+            go_id = cols[4].replace(":", "_")
 
-print(gene_nodes)
+            gene_node = {"id": gene, "symbol": cols[2], "name": cols[9], "type": cols[11], "taxon": cols[12], "neighbors": [(go_id, relation)]}
+
+            gene_nodes[gene] = gene_node
+
+    return gene_nodes
