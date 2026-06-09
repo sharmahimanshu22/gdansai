@@ -55,7 +55,15 @@ def create_hetero_graph(go_nodes, gene_nodes):
     for relation,edges in gene_to_go_edge_gropus.items():
         src = [e[0] for e in edges]
         tgt = [e[1] for e in edges]
+        relation = relation.replace('|', '_')
+        
+        if relation == "part_of":
+            invrelation = "has_part"
+        else:
+            invrelation = 'inv_' + relation
+
         graph["gene",relation,"go"].edge_index = torch.tensor([src, tgt],dtype=torch.long)
+        graph["go", invrelation, "gene"].edge_index = torch.tensor([tgt, src],dtype=torch.long)
         print(graph["gene",relation,"go"].edge_index)
 
         #print(torch.tensor([src, tgt],dtype=torch.long))

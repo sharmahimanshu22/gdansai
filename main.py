@@ -10,6 +10,17 @@ def main():
     gene_nodes = get_gene_nodes()
     graph = create_hetero_graph(go_nodes, gene_nodes)
 
+    for edge_type in graph.edge_types:
+        edge_index = graph[edge_type].edge_index
+
+        print(edge_type)
+        print(type(edge_index))
+        print(edge_index.shape)
+        print(edge_index.dtype)
+        print("\n")
+
+
+
     #homo_data = graph.to_homogeneous()
 
     #print(graph.edge_types)
@@ -35,7 +46,10 @@ def main():
     #    )
 
 
-    embeddings = model(graph)
+    out = model(graph)
+
+    for k, v in out.items():
+        print(k, v.shape)
 
     print(embeddings)
 
