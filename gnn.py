@@ -5,6 +5,7 @@ import torch
 from torch_geometric.nn import SAGEConv
 from torch_geometric.nn import to_hetero
 from itertools import islice
+import random
 
 
 
@@ -31,7 +32,8 @@ def create_hetero_graph_from_monarch():
     id_to_category = {}
     for k,v in categorywisedf.items():
         id_to_category_idces[k] = {id:ix for (ix,id) in enumerate(v['id'])} 
-        id_to_category = {id:k for id in v['id']}
+        id_to_category_current = {id:k for id in v['id']}
+        id_to_category.update(id_to_category_current)
         graph[k].num_nodes = v.shape[0]
         graph[k].name = v['name'].tolist()
         graph[k].type = v['type'].tolist()
@@ -51,19 +53,41 @@ def create_hetero_graph_from_monarch():
         graph[k].has_gene = v['has_gene'].tolist()
         graph[k].has_biological_sex = v['has_biological_sex'].tolist()
 
+    #random_items = random.sample(list(id_to_category.items()), 100)
+    #print(random_items)
+
+
+
     # Nodes have been added. 
     df = pd.read_csv(KG_EDGES_FILE,sep='\t')
     df = df[RELEVANT_EDGE_FIELDS]
-
-    edge_groups = defaultdict(list)
-
     df['object_category'] = [id_to_category[e] for e in df['object']]
     df['subject_category'] = [id_to_category[e] for e in df['subject']]
+    dfs = {name: group for name, group in df.groupby(['object_category', 'predicate' ,'subject_category'])}
+    for k,v in dfs.items():
+        print(k)
+        print(v.shape[0])
 
-    pd.set_option('display.max_rows', 100)
+    for k in dfs:
+        current_object_category = k[0]
+        current_subject_category = k[2]
+        id_to_idx_for_current_object_category = id_to_category_idces[current_object_category]
+        id_to_idx_for_current_subject_category = id_to_category_idces[current_subject_category]
+        current_df = dfs[k]
+        src_ids = current_df['object']
+        tgt_ids = current_df['subject']
+        src_ids_idx = [id_to_idx_for_current_object_category[e] for e in src_ids]
+        tgt_ids_idx = [id_to_idx_for_current_subject_category[e] for e in tgt_ids]
 
-    print(df.head(30))
-    print(id_to_category)
+        graph[k[0],k[1],k[2]].edge_index = torch.tensor([src_ids_idx, tgt_ids_idx],dtype=torch.long)
+
+
+
+
+
+    #pd.set_option('display.max_rows', 100)
+
+    #print(df.head(30))
     
 
 
