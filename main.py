@@ -5,6 +5,9 @@ import os
 
 
 def main():
+    create_hetero_graph_from_monarch()
+    return
+
     onto = get_ontology_from_filepath(os.path.abspath("go.owl"))
     go_nodes = get_nodes(onto)
     gene_nodes = get_gene_nodes()
@@ -34,27 +37,34 @@ def main():
     #)
 
     print(graph.metadata)
-    model = OntologyModel(graph)
-    #model = OntologyRGCN(
-    #    num_nodes=homo_data.num_nodes,
-    #    num_relations=len(graph.edge_types)
-    #    )
-    
-    #embeddings = model(
-    #    homo_data.edge_index,
-    #    homo_data.edge_type
-    #    )
+    print("edge_index_dict: ", graph.edge_index_dict)
 
+    sys.exit(0)
+    model = OntologyModel(graph)
 
     out = model(graph)
 
     for k, v in out.items():
         print(k, v.shape)
 
-    print(embeddings)
+    print(out)
 
 
 
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+#model = OntologyRGCN(
+#    num_nodes=homo_data.num_nodes,
+#    num_relations=len(graph.edge_types)
+#    )
+
+#embeddings = model(
+#    homo_data.edge_index,
+#    homo_data.edge_type
+#    )

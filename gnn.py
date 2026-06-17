@@ -1,8 +1,83 @@
 from collections import defaultdict
+import pandas as pd
 from torch_geometric.data import HeteroData
 import torch
 from torch_geometric.nn import SAGEConv
 from torch_geometric.nn import to_hetero
+from itertools import islice
+
+
+
+KG_NODES_FILE = '/hpc/users/sharmh15/labhome/projects/genediseaseassociation/monarch/monarchkg/monarch-kg_nodes.tsv'
+KG_EDGES_FILE = '/hpc/users/sharmh15/labhome/projects/genediseaseassociation/monarch/monarchkg/monarch-kg_edges.tsv'
+RELEVANT_NODE_FIELDS = ['id', 'category','name', 'type', 'description' , 'full_name' , 'in_taxon',  'in_taxon_label',  'symbol',  'synonym', 
+     'exact_synonym', 'broad_synonym', 'narrow_synonym',   'related_synonym',  'deprecated' , 'subsets',  'has_gene', 'has_biological_sex']
+RELEVANT_EDGE_FIELDS = ['id', 'predicate', 'category', 'agent_type', 'knowledge_level',
+                        'negated',
+                        'has_evidence', 
+                        'onset_qualifier',  'frequency_qualifier',  'sex_qualifier', 'stage_qualifier', 'species_context_qualifier' ,
+                        'disease_context_qualifier',
+                        'has_count', 'has_percentage', 'has_quotient', 'has_total',
+                        'subject', 'object'
+                        ]
+
+# Maybe I should pass list of Nodes
+def create_hetero_graph_from_monarch():
+    graph = HeteroData()
+    df = pd.read_csv(KG_NODES_FILE,sep='\t')
+    df = df[RELEVANT_NODE_FIELDS]
+    categorywisedf = {cat: group for cat, group in df.groupby('category')}
+    id_to_category_idces = defaultdict(list)
+    id_to_category = {}
+    for k,v in categorywisedf.items():
+        id_to_category_idces[k] = {id:ix for (ix,id) in enumerate(v['id'])} 
+        id_to_category = {id:k for id in v['id']}
+        graph[k].num_nodes = v.shape[0]
+        graph[k].name = v['name'].tolist()
+        graph[k].type = v['type'].tolist()
+        graph[k].description = v['description'].tolist()
+        graph[k].full_name = v['full_name'].tolist()
+        graph[k].in_taxon = v['in_taxon'].tolist()
+        graph[k].in_taxon_label = v['in_taxon_label'].tolist()
+        graph[k].symbol = v['symbol'].tolist()
+        graph[k].synonym = v['synonym'].tolist()
+        graph[k].exact_synonym = v['exact_synonym'].tolist()
+        graph[k].broad_synonym = v['broad_synonym'].tolist()
+        graph[k].narrow_synonym = v['narrow_synonym'].tolist()
+        graph[k].description = v['description'].tolist()
+        graph[k].related_synonym = v['related_synonym'].tolist()
+        graph[k].deprecated = v['deprecated'].tolist()
+        graph[k].subsets = v['subsets'].tolist()
+        graph[k].has_gene = v['has_gene'].tolist()
+        graph[k].has_biological_sex = v['has_biological_sex'].tolist()
+
+    # Nodes have been added. 
+    df = pd.read_csv(KG_EDGES_FILE,sep='\t')
+    df = df[RELEVANT_EDGE_FIELDS]
+
+    edge_groups = defaultdict(list)
+
+    df['object_category'] = [id_to_category[e] for e in df['object']]
+    df['subject_category'] = [id_to_category[e] for e in df['subject']]
+
+    pd.set_option('display.max_rows', 100)
+
+    print(df.head(30))
+    print(id_to_category)
+    
+
+
+    
+    #for k,v in id_to_category_idces.items():
+    #    few_elements = dict(islice(v.items(), 30))
+    #    print(k, few_elements)
+
+    
+
+    print(graph.metadata)
+    
+
+    return graph
 
 
 
