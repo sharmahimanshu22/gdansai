@@ -2,10 +2,29 @@ from owlreadymain import *
 from gnn import *
 from loadgaf import *
 import os
+from models import HGTModel
 
 
 def main():
-    create_hetero_graph_from_monarch()
+    device = torch.device('cuda')
+
+    #graph = create_hetero_graph_from_monarch()
+    #graph = graph.to(device)
+
+    #torch.save(graph, "hetero_data.pt")
+
+    #return
+    # To load the object back into memory
+    graph = torch.load('hetero_data.pt', weights_only=False)
+    print(graph.num_edges)
+    
+    graph = graph.to(device)
+
+    model = HGTModel(graph)
+    model = model.to(device)
+
+    xdict = model(graph)
+    print(xdict)
     return
 
     onto = get_ontology_from_filepath(os.path.abspath("go.owl"))
