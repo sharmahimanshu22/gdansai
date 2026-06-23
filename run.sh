@@ -1,13 +1,13 @@
 #BSUB -J monarch                           # Job name
 #BSUB -P acc_pejaverlab   # allocation account
 #BSUB -n 1
-#BSUB -R rusage[mem=80000]              # 80GB of memory                                                                                                                               
+#BSUB -R rusage[mem=80000]              # 80GB of memory
 #BSUB -R span[hosts=1]
-#BSUB -W 12:00                                   # walltime in HH:MM                                                                                                                 
-#BSUB -o %J.stdout                              # output log (%J : JobID)                                                                                                            
-#BSUB -eo %J.stderr                             # error log                                                                                                                          
+#BSUB -W 12:00                                   # walltime in HH:MM
+#BSUB -o %J.stdout                              # output log (%J : JobID)
+#BSUB -eo %J.stderr                             # error log
 #BSUB -q gpu
-#BSUB -R "select[a100 || a10080g || h10080g || h100nvl || l40s || b200]"
+#BSUB -R "select[ a100 || a10080g || h10080g || h100nvl || l40s || b200]"
 #BSUB -gpu num=1
 #BSUB -L /bin/bash                               # Initialize the execution environment
 

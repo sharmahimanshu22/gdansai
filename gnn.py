@@ -96,7 +96,7 @@ def create_hetero_graph_from_monarch():
             else:
                 rev_key = (k[2], inverse_predicate, k[0])
                 if rev_key in dfs:
-                    #print(rev_key, "present")
+                    print(rev_key, "here")
                     df2 = dfs.get(rev_key)
                     df1rev = df1.copy().rename(columns={'object': 'subject', 'subject': 'object', 
                                         'object_category' : 'subject_category', 'subject_category' : 'object_category' })
@@ -118,10 +118,11 @@ def create_hetero_graph_from_monarch():
                     df2 = pd.concat([df2, new_rows], ignore_index=True)
                     dfs[rev_key] = df2
                 else:
-                    #print(rev_key, " not present")
+                    print(rev_key, " not present")
                     df1rev = df1.copy().rename(columns={'object': 'subject', 'subject': 'object', 
                                         'object_category' : 'subject_category', 'subject_category' : 'object_category' })
-                    dfsnew[rev_key] = df1rev    
+                    df1rev['predicate'] = rev_key[1]
+                    dfsnew[rev_key] = df1rev
     
     dfs.update(dfsnew)
     
@@ -354,7 +355,7 @@ class OntologyRGCN(torch.nn.Module):
 
     
 def get_biological_inverse_if_exists(predicate):
-    inverse_edge_lookup = {'biolink:causes':'biolink:cuased_by',
+    inverse_edge_lookup = {'biolink:causes':'biolink:caused_by',
                            'biolink:caused_by':'biolink:causes',
                            'biolink:interacts_with':'biolink:interacts_with',
                            'biolink:homologous_to':'biolink:homologous_to',
