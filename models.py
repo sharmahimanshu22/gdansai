@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from torch_geometric.nn import HGTConv
+from torch_geometric.nn import HGTConv, HeteroConv, SAGEConv
 
 class HGTModel(nn.Module):
-    def __init__(self, data, hidden_dim=64, num_layers=2, num_heads=2):
+    def __init__(self, data, hidden_dim=128, num_layers=3, num_heads=4):
         super().__init__()
 
         self.node_types = data.node_types
@@ -25,14 +25,24 @@ class HGTModel(nn.Module):
         self.layers = nn.ModuleList()
 
         for _ in range(num_layers):
+            conv_dict = {}
+
+            for (src, rel, dst) in self.edge_types:
+                conv_dict[(src, rel, dst)] = SAGEConv(hidden_dim, hidden_dim)
+
+            self.layers.append(HeteroConv(conv_dict, aggr='sum'))
+        '''
+        for _ in range(num_layers):
             self.layers.append(
                 HGTConv(
                     in_channels=hidden_dim,
                     out_channels=hidden_dim,
                     metadata=(self.node_types, self.edge_types),
-                    heads=num_heads
+                    heads=num_heads,
+                    use_fused=False
                 )
             )
+        '''
 
         # -------------------------
         # 3. Normalization
@@ -45,23 +55,15 @@ class HGTModel(nn.Module):
         self.activation = nn.ReLU()
 
 
-    def forward(self, data):
+    def forward(self, batch):
         x_dict = {}
-
-        print(data.metadata)
-
         
 
         # -------------------------
         # Step 1: initialize embeddings
         # -------------------------
-        for ntype in data.node_types:
-            num_nodes = data[ntype].num_nodes
-
-            node_ids = torch.arange(
-                num_nodes,
-                device=next(self.parameters()).device
-            )
+        for ntype in batch.node_types:
+            node_ids = batch[ntype].n_id.to(self.node_emb[ntype].weight.device)
 
             x = self.node_emb[ntype](node_ids)
             x = self.norms[ntype](x)
@@ -75,7 +77,7 @@ class HGTModel(nn.Module):
 
             x_dict = conv(
                 x_dict,
-                data.edge_index_dict
+                batch.edge_index_dict
             )
 
             # activation + residual + norm
